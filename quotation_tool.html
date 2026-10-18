@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Security & Facility Services Quotation Generator</title>
+  <style>
+    /* UI / Control Panel Styles (Screen Only) */
+    @media screen {
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #eef2f5;
+        margin: 0;
+        padding: 20px;
+        color: #333;
+      }
+      .app-container {
+        display: flex;
+        gap: 24px;
+        max-width: 1600px;
+        margin: 0 auto;
+      }
+      .editor-panel {
+        flex: 0 0 460px;
+        background: #ffffff;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+        height: calc(100vh - 40px);
+        overflow-y: auto;
+        position: sticky;
+        top: 20px;
+      }
+      .preview-panel {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+      }
+      .page-preview {
+        background: #ffffff;
+        width: 210mm;
+        min-height: 297mm;
+        padding: 14mm 16mm;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+        box-sizing: border-box;
+        position: relative;
+      }
+      .form-group {
+        margin-bottom: 14px;
+      }
+      label {
+        display: block;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #555;
+        margin-bottom: 4px;
+      }
+      input, textarea, select {
+        width: 100%;
+        padding: 8px 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 13px;
+        box-sizing: border-box;
+      }
+      .row {
+        display: flex;
+        gap: 10px;
+      }
+      .btn {
+        background: #1a56db;
+        color: #fff;
+        padding: 10px 16px;
+        border: none;
+        border-radius: 5px;
+        font-weight: 600;
+        cursor: pointer;
+        width: 100%;
+        margin-top: 10px;
+      }
+      .btn:hover {
+        background: #1542a6;
+      }
+      .btn-outline {
+        background: #fff;
+        border: 1px solid #1a56db;
+        color: #1a56db;
+      }
+      .btn-outline:hover {
+        background: #f0f5ff;
+      }
+      .section-title {
+        font-size: 13px;
+        font-weight: bold;
+        color: #1a56db;
+        margin: 18px 0 8px 0;
+        border-bottom: 1px solid #e2e8f0;
+        padding-bottom: 4px;
+      }
+    }
+
+    /* Print Document Styles */
+    @page {
+      size: A4 portrait;
+      margin: 12mm 14mm;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      color: #000;
+      line-height: 1.25;
+      font-size: 11px;
+    }
+
+    .doc-page {
+      width: 100%;
+      box-sizing: border-box;
+      page-break-after: always;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 980px;
+    }
+
+    .doc-page:last-child {
+      page-break-after: avoid;
+    }
+
+    .doc-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .company-logo {
+      font-size: 26px;
+      font-weight: 900;
+      color: #bf0000;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-align: right;
+    }
+
+    .company-logo span {
+      display: block;
+      font-size: 9px;
+      color: #555;
+      font-weight: normal;
+      letter-spacing: 0;
+    }
+
+    .meta-block {
+      margin-bottom: 10px;
+      font-size: 11px;
+      line-height: 1.4;
+    }
+
+    .meta-block strong {
+      font-weight: bold;
+    }
+
+    /* Tables */
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 4px;
+      margin-bottom: 6px;
+      font-size: 9.5px;
+    }
+
+    table.data-table th, table.data-table td {
+      border: 1px solid #222;
+      padding: 2.8px 4px;
+      text-align: left;
+    }
+
+    table.data-table th {
+      background-color: #f2f2f2;
+      font-weight: bold;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .text-center { text-align: center !important; }
+    .text-right { text-align: right !important; }
+
+    /* Page 2 Specifics */
+    .bullet-list {
+      margin: 0;
+      padding-left: 18px;
+      font-size: 10px;
+      line-height: 1.4;
+    }
+
+    .bullet-list li {
+      margin-bottom: 3.5px;
+    }
+
+    .org-brief {
+      margin-top: 10px;
+      border-top: 1px solid #ccc;
+      padding-top: 8px;
+      font-size: 10.5px;
+      line-height: 1.4;
+    }
+
+    .org-brief h4 {
+      margin: 0 0 4px 0;
+      font-size: 11.5px;
+      text-decoration: underline;
+    }
+
+    /* Page 3 Specifics */
+    .services-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 12px;
+      font-size: 9.5px;
+    }
+
+    .services-table th, .services-table td {
+      border: 1px solid #222;
+      padding: 4px 6px;
+      vertical-align: top;
+    }
+
+    .services-table th {
+      background-color: #f2f2f2;
+      font-size: 10px;
+    }
+
+    .cert-terms-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 12px;
+      font-size: 9px;
+    }
+
+    .cert-terms-table th, .cert-terms-table td {
+      border: 1px solid #222;
+      padding: 3.5px 6px;
+    }
+
+    .cert-terms-table th {
+      background: #f2f2f2;
+    }
+
+    .signoff {
+      margin-top: 10px;
+      font-size: 10.5px;
+      line-height: 1.4;
+    }
+
+    .page-footer-num {
+      text-align: center;
+      font-size: 10px;
+      font-weight: bold;
+      margin-top: 8px;
+    }
+
+    @media print {
+      body {
+        background: #fff;
+        padding: 0;
+      }
+      .editor-panel {
+        display: none !important;
+      }
+      .preview-panel {
+        width: 100%;
+        margin: 0;
+        gap: 0;
+      }
+      .page-preview {
+        box-shadow: none;
+        padding: 0;
+        margin: 0;
+        width: 100%;
+        min-height: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-container">
+  <!-- EDITING PANEL -->
+  <div class="editor-panel">
+    <h2 style="margin-top: 0; font-size: 18px; color: #0b5ed7;">TITAN Quotation Generator</h2>
+    
+    <button class="btn" onclick="window.print()">🖨️ Print / Save as PDF</button>
+
+    <div class="section-title">Compliance Preset</div>
+    <div class="row">
+      <button class="btn btn-outline" onclick="applyPreset('with')">With Compliance</button>
+      <button class="btn btn-outline" onclick="applyPreset('without')">Without Compliance</button>
+    </div>
+
+    <div class="section-title">Fixed Company Profile <span class="badge-locked">Default Locked</span></div>
+    <div class="form-group">
+      <label>Brand / Logo Name</label>
+      <input type="text" id="cfg_logo" value="TITAN" readonly style="background:#f8f9fa; font-weight: bold; color: #0b5ed7;">
+    </div>
+    <div class="form-group">
+      <label>Legal Company Name</label>
+      <input type="text" id="cfg_legal_name" value="TITAN SECURITY SERVICES" readonly style="background:#f8f9fa;">
+    </div>
+    <div class="row">
+      <div class="form-group" style="flex:1">
+        <label>Website</label>
+        <input type="text" id="cfg_website" value="www.titansecurityservices.in" readonly style="background:#f8f9fa;">
+      </div>
+      <div class="form-group" style="flex:1">
+        <label>Helpline / Contact Mobile</label>
+        <input type="text" id="cfg_helpline" value="9177381 18659" readonly style="background:#f8f9fa;">
+      </div>
+    </div>
+    <div class="row">
+      <div class="form-group" style="flex:1">
+        <label>Contact Email</label>
+        <input type="text" id="cfg_email" value="titansecure9@gmail.com" readonly style="background:#f8f9fa;">
+      </div>
+      <div class="form-group" style="flex:1">
+        <label>Signatory & Contact</label>
+        <input type="text" id="cfg_signatory" value="Rahul Kubal | 9177381 18659" readonly style="background:#f8f9fa;">
+      </div>
+    </div>
+
+    <div class="section-title">Statutory & Registrations</div>
+    <div class="row">
+      <div class="form-group" style="flex:1">
+        <label>PAN No.</label>
+        <input type="text" id="cfg_pan" value="AADCF8576C" oninput="updateDocument()">
+      </div>
+      <div class="form-group" style="flex:1">
+        <label>GSTIN</label>
+        <input type="text" id="cfg_gst" value="27AADCF8576C1ZH" oninput="updateDocument()">
+      </div>
+    </div>
+    <div class="row">
+      <div class="form-group" style="flex:1">
+        <label>EPF No.</label>
+        <input type="text" id="cfg_epf" value="KDMAL2005262000" oninput="updateDocument()">
+      </div>
+      <div class="form-group" style="flex:1">
+        <label>ESIC No.</label>
+        <input type="text" id="cfg_esic" value="35000454220001099" oninput="updateDocument()">
+      </div>
+    </div>
+    <div class="row">
+      <div class="form-group" style="flex:1">
+        <label>CIN</label>
+        <input type="text" id="cfg_cin" value="U7499MH2019PTC330722" oninput="updateDocument()">
+      </div>
+      <div class="form-group" style="flex:1">
+        <label>PSARA Validity</label>
+        <input type="text" id="cfg_psara" value="2028" oninput="updateDocument()">
+      </div>
+    </div>
+
+    <div class="section-title">Client & Quotation Details</div>
+    <div class="form-group">
+      <label>Client Name & Location</label>
+      <textarea id="cfg_client" rows="2" oninput="updateDocument()">STAYVISTA, GOA</textarea>
+    </div>
+    <div class="row">
+      <div class="form-group" style="flex:1">
+        <label>Date</label>
+        <input type="text" id="cfg_date" value="17/10/2026" oninput="updateDocument()">
+      </div>
+      <div class="form-group" style="flex:2">
+        <label>Subject</label>
+        <input type="text" id="cfg_subject" value="Rates to provide the Security & Facility Services." oninput="updateDocument()">
+      </div>
+    </div>
+
+    <div class="section-title">Active Line Items (Set Rates & Headcounts)</div>
+    <p style="font-size:11px; color:#666;">Enter rates. Categories with 0 headcount or 0 rate will show as 0 just like the reference.</p>
+    <div id="line-items-inputs"></div>
+  </div>
+
+  <!-- DOCUMENT PREVIEW / PRINT AREA -->
+  <div class="preview-panel">
+    
+    <!-- PAGE 1: RATES TABLE -->
+    <div class="page-preview doc-page" id="page-1">
+      <div>
+        <div class="doc-header">
+          <div class="meta-block">
+            To,<br>
+            <strong id="doc_client">STAYVISTA, GOA</strong><br>
+            <strong>Subject:</strong> <span id="doc_subject">Rates to provide the Security & Facility Services.</span>
+          </div>
+          <div class="company-logo" id="doc_logo_p1">TITAN</div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; margin-bottom: 8px;">
+          <div>Dear Sir,</div>
+          <div><strong>Date:</strong> <span id="doc_date">17/10/2026</span></div>
+        </div>
+        <p style="margin: 0 0 8px 0; font-size: 10.5px;">
+          Thank you so much for showing your interest in our services. As discussed kindly find the below given rates to provide the required services for your esteemed organization.
+        </p>
+
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width: 28px;">Sr No.</th>
+              <th>Category</th>
+              <th style="width: 90px;">Shift</th>
+              <th style="width: 75px;">Rate</th>
+              <th style="width: 75px;">Service Charges @10%</th>
+              <th style="width: 65px;">Net Total</th>
+              <th style="width: 45px;">Head Count</th>
+              <th style="width: 65px;">Grand Total</th>
+              <th style="width: 60px;">Remarks</th>
+            </tr>
+          </thead>
+          <tbody id="quotation-rows">
+            <!-- Injected by JavaScript -->
+          </tbody>
+          <tfoot>
+            <tr>
+              <td class="text-center">27</td>
+              <td colspan="8" style="font-weight: bold; padding: 4px 6px;">18% GST Applicable</td>
+            </tr>
+            <tr>
+              <td class="text-center">28</td>
+              <td colspan="8" style="height: 12px;"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <div class="page-footer-num">1</div>
+    </div>
+
+    <!-- PAGE 2: OPERATIONAL COMMITMENTS & BRIEF -->
+    <div class="page-preview doc-page" id="page-2">
+      <div>
+        <div class="doc-header" style="justify-content: flex-end;">
+          <div class="company-logo" id="doc_logo_p2">TITAN</div>
+        </div>
+
+        <ul class="bullet-list">
+          <li>Increased transparency in operations.</li>
+          <li>Violence preventions.</li>
+          <li>Control on goons, problem maker or law breakers.</li>
+          <li>Scope for self-improvements.</li>
+          <li>Public general liability insurance to cover the risk up to 2 million.</li>
+          <li>24/7 Operational helpline no. - <strong class="doc_helpline_text">9177381 18659</strong>.</li>
+          <li>Dedicated Contact no and android phone will be provided for single point of contact with deployed team.</li>
+          <li>HHMD will be provide if required.</li>
+          <li>Timely payment of compliances and salary disbursement at or before 10<sup>th</sup> of every month.</li>
+          <li>Great liaising with authorities and labour department.</li>
+          <li>Free of cost Risk Assessment Survey after every 6 months.</li>
+          <li>Weekly & Monthly training will be provided, and report will be shared within due course of time.</li>
+          <li>Automated online attendance system with geo tagging and face recognition WhatsApp, to maintain the transparency.</li>
+          <li>Site visit and briefing by our officer and submission of report for the same.</li>
+          <li>Surprise check in night will be on place and report will be submitted for authentication.</li>
+          <li>Mystery audits and quality checks will conduct periodically. To ensure the security of the premises.</li>
+          <li>Two set of uniform will be provided to all the personal to ensure the stander of the premises.</li>
+          <li>Customization facility of uniforms are also available.</li>
+          <li>All personal will be well trained and will be able to read and write English language.</li>
+          <li>Everyone be trained in firefighting and emergency evacuation.</li>
+          <li>Background verification of every individual. And submission of all the documents along with police verification and medical certificate.</li>
+          <li>Client feedback report will be on place after every quarter to ensure the commitment delivery.</li>
+          <li>Monthly training on fire, first aid and emergency evacuation along with general roles and responsibility.</li>
+          <li>Quarterly fire drill will be conducted to ensure the safety of the people and property.</li>
+          <li>Based on SOP, Inhouse training will be given to every guard before deployment.</li>
+          <li>Payroll management with automated cloud-based software to ensure the compliance on track.</li>
+          <li><span class="doc_legal_short">TITAN</span> recruitment policy will be implemented.</li>
+          <li>No shifting of staff at other site but vacant post will be fulfilled within due course of time.</li>
+          <li>No person will be deployed without interviewing by your representative.</li>
+          <li>
+            <strong>Below reports will be submitted on daily basis:</strong>
+            <div style="margin-left: 12px; margin-top: 2px;">
+              • Daily deployment report.<br>
+              • Daily briefing checklist.<br>
+              • Occurrence report.<br>
+              • Incident report, if any.
+            </div>
+          </li>
+        </ul>
+
+        <div class="org-brief">
+          <h4>Brief about organization</h4>
+          <p style="margin: 0 0 6px 0;">
+            The <span class="doc_legal_short">TITAN</span> Your trusted partner in providing top-tier security solutions. We specialize in residential, commercial, and event security, offering highly trained personnel and cutting-edge technology to ensure safety and peace of mind. 
+            <span class="doc_legal_short">TITAN</span> is an Certified company that has made a name for itself by meeting all client needs along with 100% compliances.
+          </p>
+          <p style="margin: 0 0 6px 0;">
+            Our company takes pride in delivering high-quality Security and Facility management along with payroll outsourcing and placement services to our clients and has a track record of excellence in the industry. We believe that our expertise and commitment can add significant value to your organization. We assure you that we will take care of your business as if this is our own.
+          </p>
+          <p style="margin: 0;">
+            For more information, please visit our website - <strong class="doc_website_text">www.titansecurityservices.in</strong>
+          </p>
+        </div>
+      </div>
+      <div class="page-footer-num">2</div>
+    </div>
+
+    <!-- PAGE 3: SERVICES, STATUTORY & COMMERCIAL TERMS -->
+    <div class="page-preview doc-page" id="page-3">
+      <div>
+        <div class="doc-header" style="justify-content: flex-end;">
+          <div class="company-logo" id="doc_logo_p3">TITAN</div>
+        </div>
+
+        <div style="font-weight: bold; margin-bottom: 6px; font-size: 11px;">
+          The <span class="doc_logo_text">TITAN</span> Group Services Offered as Given Below
+        </div>
+
+        <table class="services-table">
+          <thead>
+            <tr>
+              <th style="width: 33.3%;">Security Services</th>
+              <th style="width: 33.3%;">Housekeeping Services</th>
+              <th style="width: 33.4%;">Business Support Services</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Manned Guarding</td><td>Cleaning</td><td>Recruitment/Placement</td></tr>
+            <tr><td>Event security</td><td>Sanitization & Disinfection</td><td>Pay Outsourcing</td></tr>
+            <tr><td>CCTV surveillance</td><td>Pantry Support</td><td>Staffing Solution</td></tr>
+            <tr><td>Executive Protection</td><td>Pest Control</td><td>Office Support</td></tr>
+            <tr><td>Security Survey</td><td>Electrician/Plumber/carpenters</td><td>Reception & Helpdesk Support</td></tr>
+            <tr><td>QRT & Marshal</td><td>Office Boy/stewards</td><td>Employee Transportation</td></tr>
+          </tbody>
+        </table>
+
+        <!-- Certifications & Commercial Terms Combined Section -->
+        <table class="cert-terms-table">
+          <thead>
+            <tr>
+              <th colspan="2" style="width: 48%; text-align: left;">Certification Details</th>
+              <th colspan="2" style="width: 52%; text-align: left;">Brief of Commercial Terms</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="width: 38%; font-weight: bold;">Legal Name</td>
+              <td style="width: 62%;" id="doc_tbl_legal_name">TITAN SECURITY SERVICES</td>
+              <td style="width: 6%; text-align: center; font-weight: bold;">1</td>
+              <td style="width: 94%;">Above quote is valid for the period of 30 days only.</td>
+            </tr>
+ 
+            <tr>
+              <td style="font-weight: bold;">GSTIN</td>
+              <td id="doc_tbl_gst">30MDRPS9039K2Z1</td>
+              <td style="text-align: center; font-weight: bold;">5</td>
+              <td>Service will be commencing on a mutually agreed date and after receipt of LOI/Work order/Agreement.</td>
+            </tr>
+      
+              <td colspan="2" rowspan="2" style="background: #fafafa; font-size: 8.5px; vertical-align: middle;">
+                In Case of any query, you may contact us at <strong class="doc_mobile_text">+91 77381 18659</strong> or <strong class="doc_email_text">titansecure9@gmail.com</strong>
+              </td>
+            </tr>
+            <tr>
+              <td style="font-weight: bold;">ISO</td>
+              <td>9001:2015 Certified</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="signoff">
+          <p style="margin: 0 0 3px 0;">Regards,</p>
+          <p style="margin: 0 0 2px 0;"><strong id="doc_signatory_name">Rahul Kubal</strong></p>
+          <p style="margin: 0 0 2px 0;">
+            <strong class="doc_legal_short">TITAN</strong>, 
+            <span id="doc_signatory_contact">77381 18659</span>, 
+            <span class="doc_website_text">www.titansecurityservices.in</span>
+          </p>
+          <p style="margin: 0; color: #444; font-size: 9.5px;">
+            (An ISO Certified Security and Facility Management Company), Helpline: <span class="doc_helpline_text">9177381 18659</span>
+          </p>
+        </div>
+      </div>
+      <div class="page-footer-num">3</div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // 26 Standard service categories from the quotation
+  const defaultCategories = [
+    { no: 1, name: "Security Officer Male", shift: "12hr/26days", netTotal: 0, count: 0, remarks: "" },
+    { no: 2, name: "Sec. Sup.", shift: "12hr/26days", netTotal: 0, count: 0, remarks: "" },
+    { no: 3, name: "Sec. Guard M/F", shift: "12hr/26days", netTotal: 26000, count: 1, remarks: "" },
+    { no: 4, name: "Gateman", shift: "08hr/26days", netTotal: 0, count: 0, remarks: "" },
+    { no: 5, name: "Bouncer", shift: "08hr/26days", netTotal: 0, count: 0, remarks: "" },
+    { no: 6, name: "Events", shift: "08hr/26days", netTotal: 0, count: 0, remarks: "" },
+    { no: 7, name: "Facility Manager", shift: "08hr/26days", netTotal: 0, count: 0, remarks: "" },
+    { no: 8, name: "HK Sup.", shift: "08hr/26days", netTotal: 25000, count: 1, remarks: "" },
+    { no: 9, name: "HK Staff M/F", shift: "08hr/26days", netTotal: 23000, count: 1, remarks: "" },
+    { no: 10, name: "F&BPantry/Attendant", shift: "08hr/26days", netTotal: 0, count: 0, remarks: "" },
+    { no: 11, name: "Plumber", shift: "08hr/26days", netTotal: 0, count: 0, remarks: "" },
+    { no: 12, name: "Carpenter", shift: "08hr/26days", netTotal: 0, count: 0, remarks: "" },
+    { no: 13, name: "Gardener", shift: "08hr/26days", netTotal: 0, count: 0, remarks: "" },
+    { no: 14, name: "Electrician/Fireman /MST", shift: "08hr/26days", netTotal: 0, count: 0, remarks: "" },
+    { no: 15, name: "Office Boy", shift: "08hr/26days", netTotal: 0, count: 0, remarks: "" },
+    { no: 16, name: "Driver", shift: "08hr/26days", netTotal: 0, count: 0, remarks: "" },
+    { no: 17, name: "Executive/Receptionist", shift: "08hr/26days", netTotal: 0, count: 0, remarks: "" },
+    { no: 18, name: "MST", shift: "08hr/26days", netTotal: 0, count: 0, remarks: "" },
+    { no: 19, name: "Technical supervisor", shift: "08hr/26days", netTotal: 0, count: 0, remarks: "" },
+    { no: 20, name: "BMS", shift: "08hr/26days", netTotal: 0, count: 0, remarks: "" },
+    { no: 21, name: "Fire marshal", shift: "08hr/26days", netTotal: 0, count: 0, remarks: "" },
+    { no: 22, name: "Help desk", shift: "08hr/26days", netTotal: 0, count: 0, remarks: "" },
+    { no: 23, name: "Swimming person", shift: "08hr/26days", netTotal: 0, count: 0, remarks: "" },
+    { no: 24, name: "Gymperson", shift: "08hr/26days", netTotal: 0, count: 0, remarks: "" },
+    { no: 25, name: "STP", shift: "08hr/26days", netTotal: 0, count: 0, remarks: "" },
+    { no: 26, name: "OWC", shift: "08hr/26days", netTotal: 0, count: 0, remarks: "" }
+  ];
+
+  let items = JSON.parse(JSON.stringify(defaultCategories));
+
+  function buildInputs() {
+    const container = document.getElementById('line-items-inputs');
+    container.innerHTML = '';
+    items.forEach((item, index) => {
+      // Highlight the active positions (e.g. Guard, HK Sup, HK Staff)
+      const isImportant = [3, 8, 9].includes(item.no);
+      const row = document.createElement('div');
+      row.style.padding = "6px 8px";
+      row.style.background = isImportant ? "#e8f0fe" : "#fbfbfb";
+      row.style.marginBottom = "6px";
+      row.style.borderRadius = "4px";
+      row.style.border = "1px solid #e0e0e0";
+      row.innerHTML = `
+        <div style="font-weight:600; font-size:11px; margin-bottom:4px;">${item.no}. ${item.name} (${item.shift})</div>
+        <div class="row">
+          <div style="flex:2;">
+            <label>Net Total (₹)</label>
+            <input type="number" value="${item.netTotal}" onchange="updateItem(${index}, 'netTotal', this.value)">
+          </div>
+          <div style="flex:1;">
+            <label>Headcount</label>
+            <input type="number" value="${item.count}" onchange="updateItem(${index}, 'count', this.value)">
+          </div>
+          <div style="flex:2;">
+            <label>Remarks</label>
+            <input type="text" value="${item.remarks}" placeholder="e.g. Day shift" onchange="updateItem(${index}, 'remarks', this.value)">
+          </div>
+        </div>
+      `;
+      container.appendChild(row);
+    });
+  }
+
+  function updateItem(index, key, value) {
+    if (key === 'netTotal' || key === 'count') {
+      items[index][key] = parseFloat(value) || 0;
+    } else {
+      items[index][key] = value;
+    }
+    renderTable();
+  }
+
+  function formatINR(val, decimals = 2) {
+    if (!val || val === 0) return "0";
+    return val.toLocaleString('en-IN', {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals
+    });
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('quotation-rows');
+    tbody.innerHTML = '';
+
+    items.forEach(item => {
+      let baseRate = 0;
+      let serviceCharge = 0;
+      let netTotal = item.netTotal || 0;
+      let grandTotal = 0;
+
+      if (netTotal > 0) {
+        // Net total = Base Rate + 10% Service Charge (Base * 1.10 = Net)
+        baseRate = netTotal / 1.10;
+        serviceCharge = netTotal - baseRate;
+        grandTotal = netTotal * (item.count || 0);
+      }
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="text-center">${item.no}</td>
+        <td>${item.name}</td>
+        <td class="text-center">${item.shift}</td>
+        <td class="text-right">${baseRate > 0 ? formatINR(baseRate, 2) : '0'}</td>
+        <td class="text-right">${serviceCharge > 0 ? formatINR(serviceCharge, 2) : '0'}</td>
+        <td class="text-right">${netTotal > 0 ? formatINR(netTotal, 0) : '0'}</td>
+        <td class="text-center">${item.count}</td>
+        <td class="text-right">${grandTotal > 0 ? formatINR(grandTotal, 0) : '0'}</td>
+        <td>${item.remarks}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function updateDocument() {
+    const logo = document.getElementById('cfg_logo').value;
+    const legalName = document.getElementById('cfg_legal_name').value;
+    const shortName = legalName.split(' ')[0] || logo;
+    const website = document.getElementById('cfg_website').value;
+    const helpline = document.getElementById('cfg_helpline').value;
+    const email = document.getElementById('cfg_email').value;
+    const mobile = document.getElementById('cfg_mobile').value;
+    const client = document.getElementById('cfg_client').value;
+    const date = document.getElementById('cfg_date').value;
+    const subject = document.getElementById('cfg_subject').value;
+
+    // Header updates
+    document.getElementById('doc_logo_p1').innerText = logo;
+    document.getElementById('doc_logo_p2').innerText = logo;
+    document.getElementById('doc_logo_p3').innerText = logo;
+    document.getElementById('doc_client').innerText = client;
+    document.getElementById('doc_date').innerText = date;
+    document.getElementById('doc_subject').innerText = subject;
+
+    // Dynamic text replacements across page 2 & 3
+    document.querySelectorAll('.doc_logo_text').forEach(el => el.innerText = logo);
+    document.querySelectorAll('.doc_legal_short').forEach(el => el.innerText = shortName);
+    document.querySelectorAll('.doc_website_text').forEach(el => el.innerText = website);
+    document.querySelectorAll('.doc_helpline_text').forEach(el => el.innerText = helpline);
+    document.querySelectorAll('.doc_mobile_text').forEach(el => el.innerText = mobile);
+    document.querySelectorAll('.doc_email_text').forEach(el => el.innerText = email);
+
+    // Certifications & Signatory
+    document.getElementById('doc_tbl_legal_name').innerText = legalName;
+    document.getElementById('doc_tbl_pan').innerText = document.getElementById('cfg_pan').value;
+    document.getElementById('doc_tbl_gst').innerText = document.getElementById('cfg_gst').value;
+    document.getElementById('doc_tbl_epf').innerText = document.getElementById('cfg_epf').value;
+    document.getElementById('doc_tbl_esic').innerText = document.getElementById('cfg_esic').value;
+    document.getElementById('doc_tbl_cin').innerText = document.getElementById('cfg_cin').value;
+    document.getElementById('doc_tbl_psara').innerText = document.getElementById('cfg_psara').value;
+
+    const signatoryParts = document.getElementById('cfg_signatory').value.split('|');
+    document.getElementById('doc_signatory_name').innerText = signatoryParts[0]?.trim() || '';
+    document.getElementById('doc_signatory_contact').innerText = signatoryParts[1]?.trim() || mobile;
+  }
+
+  function applyPreset(type) {
+    if (type === 'with') {
+      // Rates with compliance
+      items[2].netTotal = 26000; items[2].count = 1; // Sec Guard
+      items[7].netTotal = 25000; items[7].count = 1; // HK Sup
+      items[8].netTotal = 23000; items[8].count = 1; // HK Staff
+    } else {
+      // Rates without compliance
+      items[2].netTotal = 23000; items[2].count = 1; // Sec Guard
+      items[7].netTotal = 23000; items[7].count = 1; // HK Sup
+      items[8].netTotal = 21000; items[8].count = 1; // HK Staff
+    }
+    buildInputs();
+    renderTable();
+  }
+
+  // Initialize
+  buildInputs();
+  renderTable();
+  updateDocument();
+</script>
+</body>
+</html>
